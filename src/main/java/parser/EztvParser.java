@@ -19,7 +19,7 @@ public class EztvParser extends JsonRetriever {
         
     }
     
-    public Torrent read(String imdbId, int season, int episode) throws MalformedURLException, IOException {
+    public Torrent read(String imdbId, int season, int episode) throws MalformedURLException, IOException, NullPointerException {
         int page = 1;
         imdbId = imdbId.replaceAll("[^0-9]", "");
         ArrayList<Torrent> torrents = new ArrayList<>();

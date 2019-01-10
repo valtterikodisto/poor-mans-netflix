@@ -2,9 +2,10 @@ package builder;
 
 import domain.Torrent;
 import domain.TvSeries;
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import parser.EztvParser;
 import parser.OmdbParser;
 
@@ -19,10 +20,30 @@ public class ScriptBuilder {
     }
 
     
-    public void build(String keyword, int season, int episode) throws IOException, InterruptedException {
-        TvSeries tvSeries = this.omdb.read(keyword);
-        Torrent torrent = this.eztv.read(tvSeries.getImdbID(), season, episode);
-        String magnetUrl = torrent.getMagnet_url();
+    public int build(String keyword, int season, int episode) throws FileNotFoundException, UnsupportedEncodingException {
+        /*
+        RESPONSE:
+        0 => successfull
+        1 => tv series not found (OMDb)
+        2 => tv series not found (eztv)
+        */
+        
+        TvSeries tvSeries;
+        Torrent torrent;
+        String magnetUrl;
+        try {
+            tvSeries = this.omdb.read(keyword);
+            tvSeries.getImdbID().length();
+        } catch (IOException | NullPointerException ex) {
+            return 1;
+        }
+        
+        try {
+            torrent = this.eztv.read(tvSeries.getImdbID(), season, episode);
+            magnetUrl = torrent.getMagnet_url();
+        } catch (IOException | NullPointerException ex) {
+            return 2;
+        }
         
         PrintWriter writer = new PrintWriter("./download.sh", "UTF-8");
 
@@ -33,7 +54,8 @@ public class ScriptBuilder {
         writer.println("transmission-cli -w $HOME/PoorMansNetflixVideos -f $KILLTORRENT " + magnetUrl);
 
         writer.close();
-
+        
+        return 0;
     } 
     
  }
